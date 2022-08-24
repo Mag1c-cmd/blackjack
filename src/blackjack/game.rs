@@ -166,7 +166,7 @@ impl Deck {
 
     fn retreive(&mut self, n: u8) -> Vec<Card> {
         let mut hand: Vec<Card> = Vec::new();
-        for i in 0..n {
+        for _ in 0..n {
             let card = self.retreivable_cards.first().unwrap();
 
             hand.append(&mut vec![*card]);
