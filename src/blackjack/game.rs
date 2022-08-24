@@ -296,7 +296,7 @@ fn gameloop (mut game: Game) {
 
 pub fn new_game() {
     clearscreen();
-    println!("How many players do you wants?");
+    println!("How many players do you want?");
     
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
