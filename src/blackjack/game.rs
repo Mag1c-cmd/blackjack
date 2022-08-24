@@ -269,6 +269,9 @@ fn gameloop (mut game: Game) {
         }
 
         game.dealer.recalulate_value();
+
+        // TODO: Check if dealer needs to hit
+
         game.dealer.show();
         
         for player in &mut game.players {
@@ -278,7 +281,14 @@ fn gameloop (mut game: Game) {
             player.recalulate_value();
             player.show();
         }
+
+        // TODO: Compare hand values with each other.
+
+
         println!("Press enter to continue");
+
+        // TODO: Give a set of options, hit, stand, etc. per player
+
         let mut input = String::new();
         io::stdin().read_line(&mut input).unwrap();
     }
