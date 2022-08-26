@@ -189,6 +189,7 @@ struct Hand {
     name: String,
     cards: Vec<Card>,
     value: u8,
+    win_status: u8,
 }
 
 impl Hand {
@@ -204,6 +205,7 @@ impl Hand {
             name,
             cards,
             value,
+            win_status: 0,
         }
     }
 
@@ -222,6 +224,17 @@ impl Hand {
             card.show();
         }
         println!("Current hand value {}", &self.value);
+
+        if self.win_status > 0 {
+            if self.win_status == 1 {
+                println!("You have lost!");
+            } else if self.win_status == 2 {
+                println!("Stand Off!");
+            } else if self.win_status == 3 {
+                println!("You have won!");
+            }
+        }
+
         println!("-------------------------------");
     }
 
@@ -264,21 +277,22 @@ impl Game {
             players,
         }
     }
+
+    fn show(&self) {
+        clearscreen();
+        self.dealer.show();
+        for player in &self.players {
+            player.show();
+        }
+        halt();
+    }
 }
 
-// run(&my_menu);
-
 fn gameloop (mut game: Game) {
-    clearscreen();
-    game.dealer.show();
-    
-    for player in &game.players {
-        player.show();
-    }
-    
-    halt();
-
+    game.show();
     loop {
+        let mut is_hit: bool = false;
+
         clearscreen();
         for card in &mut game.dealer.cards {
             card.reveal();
@@ -288,11 +302,21 @@ fn gameloop (mut game: Game) {
 
         if game.dealer.value <= 16 {
             game.dealer.hit(&mut game.deck.retreive(1));
+            is_hit = true;
         }
 
         game.dealer.show();
         if game.dealer.value > 21 {
             println!("{} has lost with {} points!", game.dealer.name, game.dealer.value);
+            
+            for player in &mut game.players {
+                player.win_status = 3;
+                for card in &mut player.cards {
+                    card.reveal();
+                }
+                player.recalulate_value();
+            }
+            
             halt();
             break;
         }
@@ -306,13 +330,7 @@ fn gameloop (mut game: Game) {
         }
 
         halt();
-        // TODO: Compare hand values with each other.
-
-
-        // println!("Press enter to continue");
-
-        // TODO: Give a set of options, hit, stand, etc. per player
-
+        
         for player in &mut game.players {
             clearscreen();
             player.show();
@@ -330,6 +348,7 @@ fn gameloop (mut game: Game) {
     
             if mut_menu(&my_menu).selected_item_name() == "Hit" {
                 player.hit(&mut game.deck.retreive(1));
+                is_hit = true;
 
                 clearscreen();
 
@@ -337,7 +356,24 @@ fn gameloop (mut game: Game) {
                 halt();
             }
         }
+        if !is_hit {
+            break;
+        }
     }
+
+    for player in &mut game.players {
+        if player.value > 21 {   
+            player.win_status = 1;
+        } else if player.value > game.dealer.value {
+            player.win_status = 3;
+        } else if player.value == game.dealer.value {
+            player.win_status = 2;
+        } else {
+            player.win_status = 1;
+        }
+    }
+    game.show();    
+
 }
 
 pub fn new_game() {
