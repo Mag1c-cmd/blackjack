@@ -240,12 +240,27 @@ impl Hand {
 
     fn recalulate_value(&mut self) {
         let mut value: u8 = 0;
+
+        let mut ace_cards: Vec<Card> = Vec::new();
         for card in &self.cards {
             if !card.hidden {
-                value += card.value.value();
+                if card.value.show() != "A" {
+                    value += card.value.value();
+                } else {
+                    ace_cards.append(&mut vec![*card]);
+                }
+                
             }
         }
-
+        if ace_cards.len() > 0 {
+            for _ in &ace_cards {
+                if (value + 11) < 21 {
+                    value = value + 11;
+                } else {
+                    value = value + 1;
+                }
+            }
+        }
         self.value = value;
     }
 }
@@ -309,14 +324,6 @@ fn gameloop (mut game: Game) {
         if game.dealer.value > 21 {
             println!("{} has lost with {} points!", game.dealer.name, game.dealer.value);
             
-            for player in &mut game.players {
-                player.win_status = 3;
-                for card in &mut player.cards {
-                    card.reveal();
-                }
-                player.recalulate_value();
-            }
-            
             halt();
             break;
         }
@@ -362,15 +369,27 @@ fn gameloop (mut game: Game) {
     }
 
     for player in &mut game.players {
-        if player.value > 21 {   
-            player.win_status = 1;
-        } else if player.value > game.dealer.value {
-            player.win_status = 3;
-        } else if player.value == game.dealer.value {
-            player.win_status = 2;
-        } else {
-            player.win_status = 1;
+        for card in &mut player.cards {
+            card.reveal();
         }
+        player.recalulate_value();
+
+        
+            if player.value > 21 {   
+                player.win_status = 1;
+            } else {
+                if game.dealer.value <= 21 {
+                    if player.value > game.dealer.value {
+                        player.win_status = 3;
+                    } else if player.value == game.dealer.value {
+                        player.win_status = 2;
+                    } else {
+                        player.win_status = 1;
+                    }
+                } else {
+                    player.win_status = 3;
+                }
+            }
     }
     game.show();    
 
