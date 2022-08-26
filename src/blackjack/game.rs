@@ -1,7 +1,14 @@
 use std::{io};
+use terminal_menu::*;
 
 fn clearscreen() {
     print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
+}
+
+fn halt() {
+    println!("Press enter to continue");
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).unwrap();
 }
 
 #[derive(Copy, Clone)]
@@ -259,18 +266,19 @@ impl Game {
     }
 }
 
+// run(&my_menu);
+
 fn gameloop (mut game: Game) {
-    let mut finished: bool = false;
     clearscreen();
     game.dealer.show();
+    
     for player in &game.players {
         player.show();
     }
-    println!("Press enter to continue");
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).unwrap();
+    
+    halt();
 
-    while !finished {
+    loop {
         clearscreen();
         for card in &mut game.dealer.cards {
             card.reveal();
@@ -283,6 +291,11 @@ fn gameloop (mut game: Game) {
         }
 
         game.dealer.show();
+        if game.dealer.value > 21 {
+            println!("{} has lost with {} points!", game.dealer.name, game.dealer.value);
+            halt();
+            break;
+        }
         
         for player in &mut game.players {
             for card in &mut player.cards {
@@ -292,15 +305,38 @@ fn gameloop (mut game: Game) {
             player.show();
         }
 
+        halt();
         // TODO: Compare hand values with each other.
 
 
-        println!("Press enter to continue");
+        // println!("Press enter to continue");
 
         // TODO: Give a set of options, hit, stand, etc. per player
 
-        let mut input = String::new();
-        io::stdin().read_line(&mut input).unwrap();
+        for player in &mut game.players {
+            clearscreen();
+            player.show();
+
+            halt();
+
+            let menu_label = format!("What do you want to do? ({})", player.name);
+
+            let my_menu = menu(vec![
+                label(menu_label),
+                button("Hit"),
+                button("Stand")
+            ]);
+            run(&my_menu);
+    
+            if mut_menu(&my_menu).selected_item_name() == "Hit" {
+                player.hit(&mut game.deck.retreive(1));
+
+                clearscreen();
+
+                player.show();
+                halt();
+            }
+        }
     }
 }
 
@@ -314,6 +350,4 @@ pub fn new_game() {
 
     let game = Game::new(n_players);
     gameloop(game);
-
 }
-
