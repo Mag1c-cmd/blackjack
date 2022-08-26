@@ -200,6 +200,14 @@ impl Hand {
         }
     }
 
+    fn hit(&mut self, card: &mut Vec<Card>) {
+        self.cards.append(card);
+        for card in &mut self.cards {
+            card.reveal();
+        }
+        self.recalulate_value();
+    }
+
     fn show(&self) {
         println!("-------------------------------");
         println!("{}", self.name);
@@ -270,7 +278,9 @@ fn gameloop (mut game: Game) {
 
         game.dealer.recalulate_value();
 
-        // TODO: Check if dealer needs to hit
+        if game.dealer.value <= 16 {
+            game.dealer.hit(&mut game.deck.retreive(1));
+        }
 
         game.dealer.show();
         
