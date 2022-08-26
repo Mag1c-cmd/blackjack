@@ -2,6 +2,7 @@ use std::{io};
 use terminal_menu::*;
 
 fn clearscreen() {
+    // Some weird hack to clean the screen
     print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
 }
 
